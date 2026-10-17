@@ -3,80 +3,219 @@ import ARKit
 import AVFoundation
 
 struct StudioView: View {
+    @Binding var tab: AppTab
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @AppStorage("selectedAnimal") private var selectedAnimal = AnimalSpecies.cattle.rawValue
     @State private var activeAR = false
+    @State private var sceneVisible = false
     @State private var resetToken = 0
     @State private var requestingCamera = false
-    @State private var status = "Putar model dengan dua jari. Cubit untuk mengubah ukuran."
+    @State private var spinning = true
+    @State private var observation: AnimalObservation?
+    @State private var feedback = SceneFeedback(phase: .loading, message: "Menyiapkan studio…")
+    @State private var cameraHelp = false
     @State private var showSettings = false
+    private var species: AnimalSpecies { AnimalSpecies(rawValue: selectedAnimal) ?? .cattle }
     private var arSupported: Bool {
         #if targetEnvironment(simulator)
-        return false
+        false
         #else
-        return ARWorldTrackingConfiguration.isSupported
+        ARWorldTrackingConfiguration.isSupported
         #endif
     }
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    Eyebrow(text: "Eksplorasi dengan rasa ingin tahu")
-                    Text("Bawa rasa dekat\nke ruangmu.").font(.system(size: 36, weight: .medium, design: .serif))
-                    HStack {
-                        Label(activeAR ? "KAMERA AR" : "PREVIEW 3D", systemImage: activeAR ? "arkit" : "cube")
-                        Spacer()
-                        Text("DOMBA").tracking(2)
-                    }.font(.caption.monospaced()).foregroundStyle(Palette.green)
-                    AnimalSceneView(isAR: activeAR, resetToken: resetToken) { message in status = message }
-                        .id(activeAR)
-                        .frame(height: 350).clipShape(RoundedRectangle(cornerRadius: 28))
-                        .accessibilityLabel(activeAR ? "Kamera AR. Ketuk meja atau lantai untuk menaruh domba." : "Model domba interaktif")
-                    Text(status).font(.subheadline).foregroundStyle(.secondary)
-                    if arSupported {
-                        PrimaryButton(title: activeAR ? "Kembali ke preview" : "Hadirkan di ruangan", symbol: activeAR ? "cube" : "arkit") {
-                            if activeAR { stopAR() } else { requestAR() }
-                        }.disabled(requestingCamera)
-                        if activeAR {
-                            Button("Letakkan ulang", systemImage: "arrow.counterclockwise") { resetToken += 1 }
-                                .frame(maxWidth: .infinity)
+        ZStack {
+            if sceneVisible { AnimalSceneView(species: species, isAR: activeAR, resetToken: resetToken,
+                            autoRotate: spinning && !reduceMotion, observation: observation) { feedback = $0 }
+                .id(activeAR).ignoresSafeArea()
+                .accessibilityIdentifier("studio.scene") }
+            VStack {
+                LinearGradient(colors: [.black.opacity(0.5),.clear], startPoint: .top, endPoint: .bottom).frame(height: 270)
+                Spacer()
+                LinearGradient(colors: [.clear,Palette.midnight.opacity(activeAR ? 0.7 : 1)],startPoint: .top,endPoint: .bottom).frame(height: 350)
+            }.ignoresSafeArea().allowsHitTesting(false)
+            VStack(alignment: .leading, spacing: 18) {
+                HStack {
+                    circleButton("Kembali ke beranda", symbol: "arrow.left") { tab = .home }
+                    Spacer()
+                    Label(activeAR ? "KAMERA AR" : "STUDIO 3D", systemImage: activeAR ? "camera.fill" : "viewfinder")
+                        .font(.caption.monospaced().weight(.semibold)).tracking(1.5)
+                    Spacer()
+                    circleButton("Bantuan kamera", symbol: "questionmark") { cameraHelp = true }
+                }
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(species.title).font(.system(size: 48, weight: .regular, design: .serif))
+                            .accessibilityIdentifier("studio.animalName")
+                        Text(species.detail).font(.caption).foregroundStyle(.white.opacity(0.65))
+                    }
+                    Spacer()
+                    VStack(spacing: 12) {
+                        if !activeAR {
+                            circleButton(spinning ? "Jeda putaran" : "Putar otomatis",symbol: spinning ? "pause.fill" : "play.fill") { spinning.toggle() }
                         }
-                    } else {
-                        Label("Mode AR perlu iPhone atau iPad yang mendukung ARKit. Preview 3D tetap bisa kamu jelajahi.", systemImage: "info.circle")
-                            .font(.footnote).paperCard()
+                        circleButton(activeAR ? "Mulai ulang AR" : "Reset sudut pandang",symbol: "arrow.counterclockwise") { resetToken += 1 }
                     }
-                    VStack(alignment: .leading, spacing: 10) {
-                        Label("Model ilustratif", systemImage: "leaf").font(.headline)
-                        Text("Amati bentuk dari berbagai sisi. Model ini bukan acuan ukuran, umur, kesehatan, maupun kelayakan hewan kurban.")
-                            .font(.subheadline).foregroundStyle(.secondary)
-                    }.paperCard()
-                }.padding(24).frame(maxWidth: 650).frame(maxWidth: .infinity)
-            }.background(Palette.cream).foregroundStyle(Palette.ink)
-                .navigationTitle("Studio AR").navigationBarTitleDisplayMode(.inline)
-                .onDisappear { stopAR() }
-                .onChange(of: scenePhase) { _, phase in if phase != .active { stopAR() } }
-                .alert("Akses kamera diperlukan", isPresented: $showSettings) {
-                    Button("Buka Pengaturan") {
-                        if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
+                }
+                Spacer(minLength: 100)
+                if let observation {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Label(observation.title,systemImage: "scope").font(.headline)
+                            Spacer()
+                            Button { self.observation = nil } label: { Image(systemName: "xmark.circle.fill") }.accessibilityLabel("Tutup pengamatan")
+                        }
+                        Text(observation.text(for: species)).font(.footnote).lineSpacing(3).foregroundStyle(.white.opacity(0.8))
+                    }.padding(18).background(.ultraThinMaterial,in:RoundedRectangle(cornerRadius: 22))
+                }
+                VStack(spacing: 15) {
+                    AnimalPicker(selection: $selectedAnimal)
+                    HStack(spacing: 8) {
+                        ForEach(AnimalObservation.allCases) { point in
+                            Button {
+                                observation = observation == point ? nil : point
+                                spinning = false
+                                UISelectionFeedbackGenerator().selectionChanged()
+                            } label: {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "plus.circle").font(.caption)
+                                    Text(point.title).font(.caption.weight(.medium))
+                                }.padding(.vertical,10).frame(maxWidth:.infinity)
+                                    .background(observation == point ? Palette.gold.opacity(0.35) : .white.opacity(0.08),in:Capsule())
+                            }.buttonStyle(.plain).accessibilityIdentifier("observation.\(point.rawValue)")
+                        }
                     }
-                    Button("Tetap di preview", role: .cancel) { }
-                } message: { Text("Izinkan kamera untuk meletakkan domba di ruangan. Preview 3D bisa digunakan tanpa kamera.") }
-        }
+                    HStack(alignment: .top, spacing: 10) {
+                        Circle().fill(statusColor).frame(width: 7,height: 7).padding(.top,5)
+                        Text(feedback.message).font(.caption).foregroundStyle(.white.opacity(0.75))
+                            .frame(maxWidth: .infinity,alignment:.leading).accessibilityIdentifier("studio.status")
+                    }.frame(minHeight: 32)
+                    Button {
+                        if activeAR { stopAR() } else { requestAR() }
+                    } label: {
+                        HStack {
+                            Image(systemName: activeAR ? "cube.transparent" : "arkit")
+                            Text(requestingCamera ? "Meminta akses kamera…" : (activeAR ? "Kembali ke studio 3D" : "Hadirkan di duniamu"))
+                            Spacer()
+                            Image(systemName: "arrow.up.right")
+                        }.font(.subheadline.weight(.semibold)).padding(19)
+                            .foregroundStyle(Palette.midnight)
+                            .background(Palette.linen,in:RoundedRectangle(cornerRadius:20))
+                    }.buttonStyle(.plain).disabled(requestingCamera).accessibilityIdentifier("studio.camera")
+                    if activeAR && (feedback.phase == .failed || feedback.phase == .interrupted) {
+                        Button("Mulai ulang AR",systemImage:"arrow.clockwise") { resetToken += 1 }.font(.caption.weight(.semibold))
+                    }
+                }
+            }.padding(.horizontal,24).padding(.top,12).padding(.bottom,14).frame(maxWidth:700)
+        }.overlay {
+            if feedback.phase == .loading || feedback.phase == .starting {
+                ProgressView().tint(Palette.gold).scaleEffect(1.3).allowsHitTesting(false)
+            }
+        }.background(Palette.midnight).foregroundStyle(.white)
+            .toolbar(.hidden,for:.tabBar)
+            .onAppear { sceneVisible = true }
+            .onDisappear { sceneVisible = false; stopAR() }
+            .task {
+                #if DEBUG
+                if ProcessInfo.processInfo.arguments.contains("--camera-smoke-test") { requestAR() }
+                #endif
+            }
+            // A permission prompt temporarily makes the app inactive. Only backgrounding stops AR.
+            .onChange(of: scenePhase) { _, phase in if phase == .background { stopAR() } }
+            .onChange(of: selectedAnimal) { _, _ in observation = nil }
+            .sheet(isPresented:$cameraHelp) { CameraHelpView(isSimulator: !arSupported) }
+            .alert("Izinkan akses kamera",isPresented:$showSettings) {
+                Button("Buka Pengaturan") {
+                    if let url = URL(string:UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
+                }
+                Button("Nanti",role:.cancel) { }
+            } message: { Text("Di Pengaturan, aktifkan Kamera untuk KurbanAR. Gambar hanya dipakai untuk AR dan tidak direkam.") }
+    }
+    private var statusColor: Color {
+        switch feedback.phase { case .failed,.interrupted: .orange; case .ready,.placed: Palette.gold; default: .white.opacity(0.5) }
+    }
+    private func circleButton(_ title: String,symbol: String,action:@escaping () -> Void) -> some View {
+        Button(action:action) { Image(systemName:symbol).font(.system(size:15,weight:.semibold)).frame(width:44,height:44).background(.white.opacity(0.10),in:Circle()) }
+            .buttonStyle(.plain).accessibilityLabel(title)
     }
     private func stopAR() {
         activeAR = false
-        status = "Putar model dengan dua jari. Cubit untuk mengubah ukuran."
+        requestingCamera = false
     }
     private func requestAR() {
-        guard arSupported else { return }
-        requestingCamera = true
-        Task { @MainActor in
-            let granted = await AVCaptureDevice.requestAccess(for: .video)
-            requestingCamera = false
-            if granted && scenePhase == .active {
-                resetToken = 0
-                status = "Gerakkan kamera perlahan, lalu ketuk permukaan datar."
-                activeAR = true
-            } else if !granted { showSettings = true }
+        guard arSupported else { cameraHelp = true;return }
+        switch AVCaptureDevice.authorizationStatus(for:.video) {
+        case .authorized: activateCamera()
+        case .notDetermined:
+            requestingCamera = true
+            Task { @MainActor in
+                let granted = await AVCaptureDevice.requestAccess(for:.video)
+                requestingCamera = false
+                if granted { activateCamera() } else { showSettings = true }
+            }
+        case .denied,.restricted: showSettings = true
+        @unknown default: showSettings = true
         }
+    }
+    private func activateCamera() {
+        guard tab == .studio, CameraActivationPolicy.shouldActivate(granted:true,supported:arSupported,isBackground:scenePhase == .background) else { return }
+        observation = nil;resetToken = 0
+        feedback = SceneFeedback(phase:.starting,message:"Menghubungkan kamera…")
+        activeAR = true
+    }
+}
+
+struct AnimalPicker: View {
+    @Binding var selection: String
+    var body: some View {
+        HStack(spacing:10) {
+            ForEach(AnimalSpecies.allCases) { species in
+                let selected = selection == species.rawValue
+                Button {
+                    selection = species.rawValue
+                    UISelectionFeedbackGenerator().selectionChanged()
+                } label: {
+                    HStack(spacing:12) {
+                        Text(species.index).font(.caption.monospaced()).foregroundStyle(selected ? Palette.gold : .white.opacity(0.4))
+                        Text(species.title).font(.subheadline.weight(.semibold))
+                        Spacer()
+                        Image(systemName:selected ? "checkmark.circle.fill" : "circle").font(.subheadline)
+                            .foregroundStyle(selected ? Palette.gold : .white.opacity(0.25))
+                    }.padding(16).background(selected ? .white.opacity(0.13) : .white.opacity(0.04),in:RoundedRectangle(cornerRadius:18))
+                        .overlay(RoundedRectangle(cornerRadius:18).stroke(selected ? Palette.gold.opacity(0.6) : .white.opacity(0.1),lineWidth:1))
+                }.buttonStyle(.plain).accessibilityIdentifier("animal.\(species.rawValue)")
+                    .accessibilityAddTraits(selected ? .isSelected : [])
+            }
+        }.foregroundStyle(.white)
+    }
+}
+
+struct CameraHelpView: View {
+    @Environment(\.dismiss) private var dismiss
+    let isSimulator: Bool
+    var body: some View {
+        NavigationStack {
+            List {
+                if isSimulator {
+                    Section("Kamera AR perlu perangkat fisik") {
+                        Text("Simulator Xcode tidak menyediakan kamera AR. Jalankan KurbanAR di iPhone/iPad yang mendukung ARKit. Studio 3D tetap interaktif di sini.")
+                    }
+                }
+                Section("Mulai pengalaman AR") {
+                    Label("Izinkan kamera saat diminta.",systemImage:"camera")
+                    Label("Arahkan ke lantai atau meja yang terang dan memiliki pola.",systemImage:"sun.max")
+                    Label("Gerakkan perlahan sampai status permukaan ditemukan, lalu ketuk area tersebut.",systemImage:"hand.tap")
+                    Label("Geser untuk memindahkan, cubit untuk ukuran, dan putar dengan dua jari.",systemImage:"hand.draw")
+                }
+                Section("Jika kamera kosong") {
+                    Text("Tekan Mulai ulang AR. Periksa Pengaturan → KurbanAR → Kamera. Jika kamera sedang digunakan aplikasi lain, tutup aplikasi tersebut lalu coba kembali.")
+                }
+                Section("Tentang model") {
+                    Text("Sapi dan domba adalah ilustrasi 3D dengan proporsi lebih natural. Ukuran AR dapat diubah dan bukan ukuran hewan sebenarnya. Model tidak menilai umur, kesehatan, atau kelayakan kurban.")
+                }
+            }.navigationTitle("Panduan studio").navigationBarTitleDisplayMode(.inline)
+                .toolbar { Button("Selesai") { dismiss() } }.tint(Palette.green)
+        }.presentationDetents([.medium,.large])
     }
 }

@@ -2,65 +2,77 @@ import SwiftUI
 
 struct HomeView: View {
     @Binding var tab: AppTab
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @AppStorage("selectedAnimal") private var selectedAnimal = AnimalSpecies.cattle.rawValue
     @AppStorage("completedLessons") private var saved = ""
     @State private var about = false
+    @State private var sceneVisible = false
+    private var species: AnimalSpecies { AnimalSpecies(rawValue: selectedAnimal) ?? .cattle }
     private var progress: LearningProgress { LearningProgress(saved: saved) }
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 25) {
-                    HStack {
-                        Label("kurbanar", systemImage: "sparkle").font(.title3.weight(.bold))
-                        Spacer()
-                        Button { about = true } label: { Image(systemName: "info.circle").font(.title3) }
-                            .accessibilityLabel("Tentang KurbanAR")
+        ZStack {
+            if sceneVisible { AnimalSceneView(species:species,autoRotate:!reduceMotion).ignoresSafeArea() }
+            VStack {
+                LinearGradient(colors:[Palette.midnight.opacity(0.95),.clear],startPoint:.top,endPoint:.bottom).frame(height:320)
+                Spacer()
+                LinearGradient(colors:[.clear,Palette.midnight],startPoint:.top,endPoint:.bottom).frame(height:380)
+            }.ignoresSafeArea().allowsHitTesting(false)
+            VStack(alignment:.leading,spacing:18) {
+                HStack {
+                    Label("kurbanar",systemImage:"sparkle").font(.title3.weight(.bold))
+                    Spacer()
+                    Button { about = true } label: {
+                        Image(systemName:"info").font(.subheadline.weight(.semibold)).frame(width:44,height:44)
+                            .background(.white.opacity(0.10),in:Circle())
+                    }.accessibilityLabel("Tentang KurbanAR")
+                }
+                HStack(spacing:8) {
+                    Circle().fill(Palette.gold).frame(width:6,height:6)
+                    Text("SEBUAH PERJALANAN SPASIAL").font(.system(size:10,weight:.medium,design:.monospaced)).tracking(2)
+                }.foregroundStyle(Palette.gold)
+                Text("Lebih dekat.\nLebih bermakna.")
+                    .font(.system(size:43,weight:.regular,design:.serif)).minimumScaleFactor(0.7)
+                Text("Kenali. Peduli. Berbagi.").font(.subheadline).foregroundStyle(.white.opacity(0.6))
+                Spacer(minLength:20)
+                HStack(alignment:.bottom) {
+                    VStack(alignment:.leading,spacing:5) {
+                        Text("KOLEKSI / \(species.index)").font(.caption2.monospaced()).tracking(2).foregroundStyle(Palette.gold)
+                        Text(species.title).font(.system(size:30,weight:.medium,design:.serif))
                     }
-                    Eyebrow(text: "Ruang belajar & berbagi")
-                    Text("Pahami maknanya.\nRasakan dekatnya.")
-                        .font(.system(size: 37, weight: .medium, design: .serif)).minimumScaleFactor(0.75)
-                    Text("Jelajahi kurban lewat pengalaman kecil yang penuh makna.")
-                        .font(.subheadline).foregroundStyle(.secondary)
-                    VStack(spacing: 0) {
-                        HStack {
-                            Label("KENALI DOMBA", systemImage: "viewfinder").font(.caption2.monospaced().weight(.medium))
-                            Spacer()
-                            Text("3D INTERAKTIF").font(.caption2.monospaced())
-                        }.padding(20)
-                        AnimalSceneView(isAR: false, resetToken: 0).frame(height: 225)
-                            .accessibilityLabel("Model domba tiga dimensi bergaya ilustrasi")
-                        HStack(alignment: .bottom) {
-                            VStack(alignment: .leading, spacing: 5) {
-                                Text("Kenalan lebih dekat").font(.title3.weight(.semibold))
-                                Text("Putar. Amati. Pelajari.").font(.caption).foregroundStyle(.secondary)
-                            }
-                            Spacer()
-                            Button { tab = .studio } label: {
-                                Image(systemName: "arrow.up.right").font(.title3).padding(14)
-                                    .background(Palette.green, in: Circle()).foregroundStyle(.white)
-                            }.accessibilityLabel("Buka Studio AR")
-                        }.padding(20)
-                    }.background(Palette.sage, in: RoundedRectangle(cornerRadius: 28)).clipShape(RoundedRectangle(cornerRadius: 28))
+                    Spacer()
+                    Label("LIVE 3D",systemImage:"viewfinder").font(.caption2.monospaced())
+                        .padding(10).background(.white.opacity(0.08),in:Capsule())
+                }
+                AnimalPicker(selection:$selectedAnimal)
+                Button { tab = .studio } label: {
                     HStack {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Eyebrow(text: "Perjalananmu")
-                            Text("\(progress.completed.count) dari 3 bab selesai").font(.headline)
-                        }
+                        Image(systemName:"arkit")
+                        Text("Masuk studio interaktif")
                         Spacer()
-                        Text("\(Int(progress.fraction * 100))%")
-                            .font(.system(.title2, design: .rounded).weight(.semibold))
+                        Image(systemName:"arrow.up.right")
+                    }.font(.subheadline.weight(.semibold)).padding(19).foregroundStyle(Palette.midnight)
+                        .background(Palette.linen,in:RoundedRectangle(cornerRadius:20))
+                }.buttonStyle(.plain).accessibilityLabel("Buka Studio AR")
+                HStack(spacing:15) {
+                    Button { tab = .learn } label: {
+                        VStack(alignment:.leading,spacing:5) {
+                            Label("Perjalanan belajar",systemImage:"book.closed").font(.caption.weight(.medium))
+                            Text("\(progress.completed.count) dari 3 bab selesai").font(.caption2).foregroundStyle(.white.opacity(0.5))
+                        }.frame(maxWidth:.infinity,alignment:.leading)
                     }
-                    ProgressView(value: progress.fraction).tint(Palette.green)
-                    PrimaryButton(title: progress.completed.isEmpty ? "Mulai perjalanan" : "Lanjut belajar") { tab = .learn }
-                    HStack(spacing: 12) {
-                        Image(systemName: "heart.text.clipboard").font(.title2)
-                        Text("Belajar dengan empati, berbagi dengan peduli.").font(.footnote)
-                    }.foregroundStyle(Palette.green).padding(.bottom, 12)
-                }.padding(24).frame(maxWidth: 650)
-                    .frame(maxWidth: .infinity)
-            }.background(Palette.cream).foregroundStyle(Palette.ink)
-                .toolbar(.hidden, for: .navigationBar)
-                .sheet(isPresented: $about) { AboutView() }
-        }
+                    Rectangle().fill(.white.opacity(0.15)).frame(width:1,height:30)
+                    Button { tab = .distribute } label: {
+                        VStack(alignment:.leading,spacing:5) {
+                            Label("Latihan berbagi",systemImage:"shippingbox").font(.caption.weight(.medium))
+                            Text("Rencanakan distribusi").font(.caption2).foregroundStyle(.white.opacity(0.5))
+                        }.frame(maxWidth:.infinity,alignment:.leading)
+                    }
+                }.buttonStyle(.plain).padding(.top,5)
+            }.padding(.horizontal,24).padding(.top,8).padding(.bottom,12).frame(maxWidth:700)
+        }.background(Palette.midnight).foregroundStyle(.white)
+            .onAppear { sceneVisible = true }
+            .onDisappear { sceneVisible = false }
+            .sheet(isPresented:$about) { AboutView() }
     }
 }
 
@@ -69,9 +81,9 @@ struct AboutView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section("KurbanAR · Prototipe 0.1") {
+                Section("KurbanAR · Prototipe 0.2") {
                     Text("Pengalaman edukasi pribadi tentang kepedulian, persiapan, dan berbagi. Materi awal masih perlu ditinjau ahli agama dan kesehatan hewan sebelum rilis publik.")
-                    Text("Model domba bersifat ilustratif. Aplikasi ini bukan sertifikasi, panduan teknik penyembelihan, atau penilaian kelayakan hewan.")
+                    Text("Model sapi dan domba bersifat ilustratif. Aplikasi ini bukan sertifikasi, panduan teknik penyembelihan, atau penilaian kelayakan hewan.")
                 }
                 Section("Privasi") {
                     Text("Progres belajar disimpan di perangkat. Kamera hanya dipakai saat mode AR aktif. Aplikasi tidak merekam atau mengirim gambar kamera dan tidak memiliki analitik maupun akun.")

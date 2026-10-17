@@ -21,3 +21,14 @@ Automated domain tests verify integer-gram distribution invariants, input bounds
 - Interrupt the session: confirm useful feedback and recovery through preview.
 - Check low-light and feature-poor surfaces without a successful raycast.
 - Validate VoiceOver and large text on both iPhone and iPad.
+
+
+## Version 0.2 verification · 17 October 2026
+
+- Five Swift Testing domain tests passed, including catalog integrity and camera activation eligibility during the permission-dialog lifecycle.
+- Two final XCUITests passed. Screenshot checks confirmed visible foreground geometry for both animal models. UI coverage includes both animal choices, an observation card, simulator camera guidance, learning persistence, and distribution arithmetic.
+- The original Blender renders and in-app home/studio screenshots were inspected. Source geometry is included and does not require a third-party model license.
+- iOS simulator and signed iPhone 13 builds succeeded. Deployment target is now iOS 18 for native RealityKit geometry and asynchronous entity loading.
+- Camera startup now explicitly uses the live feed and waits for a mounted view; errors, surface discovery, and no-frame timeout are surfaced in the UI.
+- The signed prototype was installed on the connected iPhone 13. A physical-camera launch was initially blocked by the locked device; the user then chose to continue without physical-camera testing. No successful frame delivery or placement is claimed.
+- Remaining checks: physical AR frames, plane placement, gestures, camera denial/interruption, iPad, and large Dynamic Type.

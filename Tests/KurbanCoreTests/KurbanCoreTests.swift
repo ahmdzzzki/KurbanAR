@@ -33,3 +33,19 @@ import Testing
     #expect(progress.completed.count == 1)
     #expect(LearningProgress(saved: progress.saved) == progress)
 }
+
+@Test func animalCatalogIsComplete() {
+    #expect(AnimalSpecies.allCases.count == 2)
+    #expect(AnimalSpecies(rawValue: "sapi") == .cattle)
+    #expect(AnimalSpecies(rawValue: "domba") == .sheep)
+    #expect(AnimalSpecies.cattle.modelHeight > AnimalSpecies.sheep.modelHeight)
+    for animal in AnimalSpecies.allCases {
+        for point in AnimalObservation.allCases { #expect(!point.text(for: animal).isEmpty) }
+    }
+}
+@Test func cameraPermissionSurvivesInactivePhase() {
+    #expect(CameraActivationPolicy.shouldActivate(granted: true, supported: true, isBackground: false))
+    #expect(!CameraActivationPolicy.shouldActivate(granted: true, supported: true, isBackground: true))
+    #expect(!CameraActivationPolicy.shouldActivate(granted: false, supported: true, isBackground: false))
+    #expect(!CameraActivationPolicy.shouldActivate(granted: true, supported: false, isBackground: false))
+}

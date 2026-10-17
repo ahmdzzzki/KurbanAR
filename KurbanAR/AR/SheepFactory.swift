@@ -2,43 +2,60 @@ import RealityKit
 import UIKit
 
 @MainActor
-enum SheepFactory {
-    static func make() -> ModelEntity {
-        let root = ModelEntity()
-        root.name = "Domba ilustratif"
-        let wool = UIColor(red: 0.97, green: 0.94, blue: 0.84, alpha: 1)
-        let face = UIColor(red: 0.32, green: 0.25, blue: 0.20, alpha: 1)
-        let hoof = UIColor(red: 0.19, green: 0.17, blue: 0.14, alpha: 1)
-        func ball(_ radius: Float, _ scale: SIMD3<Float>, _ position: SIMD3<Float>, _ color: UIColor) {
-            let part = ModelEntity(mesh: .generateSphere(radius: radius), materials: [SimpleMaterial(color: color, roughness: 0.88, isMetallic: false)])
-            part.scale = scale
-            part.position = position
-            root.addChild(part)
+final class AnimalModelLibrary {
+    static let shared = AnimalModelLibrary()
+    private var templates: [AnimalSpecies: Entity] = [:]
+
+    func load(_ species: AnimalSpecies) async throws -> Entity {
+        if let template = templates[species] { return template.clone(recursive: true) }
+        guard let url = Bundle.main.url(forResource: species.rawValue, withExtension: "usdz", subdirectory: "Models") else {
+            throw CocoaError(.fileNoSuchFile)
         }
-        // All geometry is original and procedural. The model faces +Z.
-        ball(0.40, [1.05, 0.92, 1.42], [0, 0.72, 0], wool)
-        for side: Float in [-1, 1] {
-            for z: Float in [-0.30, 0.30] {
-                ball(0.10, [0.75, 2.2, 0.75], [side * 0.23, 0.27, z], face)
-                ball(0.10, [0.85, 0.65, 0.95], [side * 0.23, 0.065, z + 0.015], hoof)
-            }
-            ball(0.12, [1.7, 0.42, 0.65], [side * 0.29, 1.03, 0.49], face)
-            ball(0.065, [1, 1.15, 0.6], [side * 0.14, 1.06, 0.707], .white)
-            ball(0.033, [1, 1, 0.7], [side * 0.14, 1.06, 0.746], hoof)
-            ball(0.012, [1, 1, 1], [side * 0.14 - 0.008, 1.071, 0.765], .white)
+        let entity = try await Entity(contentsOf: url)
+        // USD records its source up axis. RealityKit imports it into the Y-up scene.
+        let bounds = entity.visualBounds(relativeTo: nil)
+        let height = max(bounds.extents.y, 0.001)
+        entity.scale *= species.modelHeight / height
+        let normalized = entity.visualBounds(relativeTo: nil)
+        entity.position -= [normalized.center.x, normalized.min.y, normalized.center.z]
+        let wrapper = Entity()
+        wrapper.addChild(entity)
+        wrapper.name = species.title
+        templates[species] = wrapper
+        return wrapper.clone(recursive: true)
+    }
+}
+
+@MainActor
+enum HabitatFactory {
+    static func make() -> Entity {
+        let root = Entity()
+        func model(_ mesh: MeshResource, _ color: UIColor, _ position: SIMD3<Float>) -> ModelEntity {
+            let e = ModelEntity(mesh: mesh, materials: [SimpleMaterial(color: color, roughness: 0.95, isMetallic: false)])
+            e.position = position; root.addChild(e); return e
         }
-        ball(0.23, [0.90, 1.20, 0.92], [0, 0.96, 0.53], face)
-        ball(0.095, [1.2, 0.7, 0.7], [0, 0.83, 0.72], hoof)
-        for x: Float in [-0.16, 0, 0.16] {
-            ball(0.12, [1, 0.9, 1], [x, 1.19, 0.49], wool)
+        let ground = model(.generateCylinder(height: 0.07, radius: 1.65), UIColor(red: 0.28, green: 0.34, blue: 0.23, alpha: 1), [0,-0.045,0])
+        ground.name = "Studio plinth"
+        // Inset rings make an exhibit rather than a floating object on a flat card.
+        _ = model(.generateCylinder(height: 0.035, radius: 1.7), UIColor(red: 0.19, green: 0.25, blue: 0.17, alpha: 1), [0,-0.095,0])
+        for i in 0..<58 {
+            let angle = Float(i) * 2.39996
+            let r = 1.35 + Float(i % 6) * 0.035
+            let blade = model(.generateCone(height: 0.10 + Float(i % 5) * 0.018, radius: 0.017), UIColor(red: 0.36, green: 0.43, blue: 0.24, alpha: 1), [cos(angle)*r, 0.035, sin(angle)*r])
+            blade.orientation = simd_quatf(angle: 0.2, axis: [1,0,0])
         }
-        for z: Float in [-0.35, -0.1, 0.15, 0.35] {
-            for x: Float in [-0.24, 0, 0.24] {
-                ball(0.16, [1, 0.85, 1], [x, 0.99, z], wool)
-            }
-        }
-        ball(0.13, [0.7, 0.9, 1], [0, 0.8, -0.57], wool)
-        root.generateCollisionShapes(recursive: true)
+        let light = DirectionalLight()
+        light.light.color = UIColor(red: 1, green: 0.89, blue: 0.70, alpha: 1)
+        light.light.intensity = 3300
+        light.shadow = DirectionalLightComponent.Shadow(maximumDistance: 12, depthBias: 1)
+        light.look(at: [0,0.5,0], from: [3,6,4], relativeTo: nil)
+        root.addChild(light)
+        let fill = PointLight()
+        fill.light.intensity = 850
+        fill.light.attenuationRadius = 12
+        fill.light.color = UIColor(red: 0.75, green: 0.84, blue: 1, alpha: 1)
+        fill.position = [-3,3,1]
+        root.addChild(fill)
         return root
     }
 }

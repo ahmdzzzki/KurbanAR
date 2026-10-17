@@ -1,6 +1,8 @@
 import SwiftUI
 
 enum Palette {
+    static let midnight = Color(red:0.075,green:0.13,blue:0.105)
+    static let linen = Color(red:0.94,green:0.92,blue:0.83)
     static let ink = Color(red: 0.12, green: 0.23, blue: 0.19)
     static let green = Color(red: 0.19, green: 0.37, blue: 0.28)
     static let cream = Color(red: 0.97, green: 0.96, blue: 0.92)
