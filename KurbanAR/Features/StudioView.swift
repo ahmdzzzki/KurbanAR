@@ -15,6 +15,7 @@ struct StudioView: View {
     @State private var observation: AnimalObservation?
     @State private var feedback = SceneFeedback(phase: .loading, message: "Menyiapkan studio…")
     @State private var cameraHelp = false
+    @State private var cameraPrimer = false
     @State private var showSettings = false
     private var species: AnimalSpecies { AnimalSpecies(rawValue: selectedAnimal) ?? .cattle }
     private var arSupported: Bool {
@@ -92,7 +93,7 @@ struct StudioView: View {
                             .frame(maxWidth: .infinity,alignment:.leading).accessibilityIdentifier("studio.status")
                     }.frame(minHeight: 32)
                     Button {
-                        if activeAR { stopAR() } else { requestAR() }
+                        if activeAR { stopAR() } else if arSupported { cameraPrimer = true } else { cameraHelp = true }
                     } label: {
                         HStack {
                             Image(systemName: activeAR ? "cube.transparent" : "arkit")
@@ -125,6 +126,12 @@ struct StudioView: View {
             .onChange(of: scenePhase) { _, phase in if phase == .background { stopAR() } }
             .onChange(of: selectedAnimal) { _, _ in observation = nil }
             .sheet(isPresented:$cameraHelp) { CameraHelpView(isSimulator: !arSupported) }
+            .confirmationDialog("Jelajah AR bersama pendamping",isPresented:$cameraPrimer,titleVisibility:.visible) {
+                Button("Mulai bersama pendamping") { requestAR() }
+                Button("Tetap di studio 3D",role:.cancel) { }
+            } message: {
+                Text("Kamera membuat hewan 3D tampak hadir di ruanganmu. Gambar tidak direkam. Ajak pendamping dan pilih tempat lapang; tetap perhatikan sekeliling.")
+            }
             .alert("Izinkan akses kamera",isPresented:$showSettings) {
                 Button("Buka Pengaturan") {
                     if let url = URL(string:UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }

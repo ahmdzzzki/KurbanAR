@@ -24,3 +24,14 @@ The repository contains an MVP prototype. Publishing this code does not submit o
 2. Interactive AR hotspots and a preparation scenario with meaningful choices.
 3. Sound design, and optional English localization.
 4. Device verification, accessibility pass, and store preparation.
+
+
+## Version 0.3 audience decisions before public release
+
+- Test with children across SD and SMP levels, with guardian permission and appropriate supervision. Validate reading comprehension, terminology around death, optional skipping, and emotional comfort with an educator.
+- Have the religious and animal-health content reviewed; confirm the station sequence is understood as a high-level overview, not technical training.
+- Decide final App Store positioning and age ratings. Apple's Kids Category is for ages 11 and under; the proposed SD/SMP audience spans that boundary. Do not assume a category or rating has been approved.
+- If pursuing the Kids Category, implement and review appropriate parental gates for protected actions, including camera permissions and the Settings link. The current AR companion acknowledgement is an explanation, not verified consent or an App Review-approved parental gate.
+- Review installed Indonesian system voices, speech interruptions, VoiceOver, and large Dynamic Type on physical devices.
+- Further reading: https://developer.apple.com/kids/ and https://developer.apple.com/app-store/categories/.
+- Background content: https://dki.kemenag.go.id/berita/khutbah-idul-adha-ajak-umat-teladani-keteguhan-nabi-ibrahim-neNIt and https://sleman.kemenag.go.id/home/2026/05/28/asah-peduli-dan-kebersamaan-mtsn-10-sleman-gelar-latihan-kurban/.

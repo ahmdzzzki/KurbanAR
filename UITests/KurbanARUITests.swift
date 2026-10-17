@@ -21,28 +21,84 @@ final class KurbanARUITests: XCTestCase {
                        "The exhibit must render visible geometry, not just load its model.")
     }
 
+    @MainActor private func tapReachable(_ element: XCUIElement, in app: XCUIApplication) {
+        XCTAssertTrue(element.waitForExistence(timeout:5))
+        for _ in 0..<6 {
+            if element.isHittable { break }
+            if element.frame.midY < app.frame.midY { app.swipeDown() } else { app.swipeUp() }
+        }
+        element.tap()
+    }
+
+    @MainActor func testDayJourneyCanSkipOptionalExplanationAndEarnBadge() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--reset-learning-progress"]
+        app.launch()
+        app.tabBars.buttons["Hari Kurban"].tap()
+        app.buttons["station.slaughter"].tap()
+        XCTAssertTrue(app.buttons["day.readOptional"].exists)
+        tapReachable(app.buttons["day.next"],in:app)
+        XCTAssertEqual(app.staticTexts["day.title"].label,"Ditimbang dan dikemas")
+        tapReachable(app.buttons["day.next"],in:app)
+        tapReachable(app.buttons["day.next"],in:app)
+        for id in ["check","prepare","slaughter","pack","deliver"] {
+            tapReachable(app.buttons["order."+id],in:app)
+        }
+        tapReachable(app.buttons["order.submit"],in:app)
+        XCTAssertTrue(app.staticTexts["Urutannya tepat!"].waitForExistence(timeout:5))
+        let screenshot = XCTAttachment(screenshot:app.screenshot())
+        screenshot.name = "Hari Kurban — tantangan selesai";screenshot.lifetime = .keepAlways;add(screenshot)
+    }
+
+    @MainActor func testSharingGameAndSMPMode() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--reset-learning-progress"]
+        app.launch()
+        app.tabBars.buttons["Berbagi"].tap()
+        for index in 0..<3 {
+            tapReachable(app.buttons["family.\(index)"],in:app)
+            tapReachable(app.buttons["family.\(index)"],in:app)
+        }
+        tapReachable(app.buttons["sharing.check"],in:app)
+        XCTAssertTrue(app.staticTexts["Hore, semua dapat sama banyak!"].waitForExistence(timeout:5))
+        let screenshot = XCTAttachment(screenshot:app.screenshot())
+        screenshot.name = "Tantangan berbagi";screenshot.lifetime = .keepAlways;add(screenshot)
+        app.swipeDown();app.swipeDown()
+        app.buttons["stage.smp"].tap()
+        XCTAssertTrue(app.staticTexts["12 paket tersisa"].exists)
+        XCTAssertTrue(app.buttons["family.3"].exists)
+    }
+
     @MainActor func testLearningAndPersistence() {
         let app = XCUIApplication()
+        app.launchArguments = ["--reset-learning-progress"]
         app.launch()
-        app.tabBars.buttons["Belajar"].tap()
+        app.launchArguments = []
+        app.buttons["Mulai misi belajar"].tap()
+        let map = XCTAttachment(screenshot:app.screenshot())
+        map.name = "Peta misi SD";map.lifetime = .keepAlways;add(map)
         app.staticTexts["Mengenal hewan"].tap()
+        XCTAssertTrue(app.buttons["story.read"].exists)
+        app.buttons["lesson.next"].tap()
         app.swipeUp()
         app.swipeUp()
-        let answer = app.buttons.containing(.staticText, identifier: "Petugas kesehatan hewan yang kompeten").firstMatch
+        let answer = app.buttons.containing(.staticText, identifier: "Petugas kesehatan hewan").firstMatch
         XCTAssertTrue(answer.waitForExistence(timeout: 5))
         answer.tap()
         app.buttons["Periksa jawaban"].tap()
         app.swipeUp()
-        XCTAssertTrue(app.staticTexts["Tepat! Bab selesai."].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Hore! Misi selesai."].waitForExistence(timeout: 5))
         app.terminate()
         app.launch()
         app.swipeUp()
-        XCTAssertTrue(app.staticTexts["1 dari 3 bab selesai"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["1 dari 6 bintang"].waitForExistence(timeout: 5))
     }
 
     @MainActor func testStudioAndDistribution() {
         let app = XCUIApplication()
+        app.launchArguments = ["--reset-learning-progress"]
         app.launch()
+        app.launchArguments = []
         app.tabBars.buttons["Studio AR"].tap()
         XCTAssertTrue(app.staticTexts["STUDIO 3D"].waitForExistence(timeout: 5))
         app.buttons["animal.sapi"].tap()
@@ -69,7 +125,8 @@ final class KurbanARUITests: XCTestCase {
         preview.lifetime = .keepAlways
         add(preview)
         app.buttons["Kembali ke beranda"].tap()
-        app.tabBars.buttons["Distribusi"].tap()
+        app.tabBars.buttons["Berbagi"].tap()
+        tapReachable(app.buttons["sharing.calculator"],in:app)
         let weight = app.staticTexts["distribution.gramsPerPackage"]
         XCTAssertTrue(weight.waitForExistence(timeout: 5))
         XCTAssertEqual(weight.label.filter(\.isNumber), "1250")

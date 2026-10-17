@@ -32,3 +32,12 @@ Automated domain tests verify integer-gram distribution invariants, input bounds
 - Camera startup now explicitly uses the live feed and waits for a mounted view; errors, surface discovery, and no-frame timeout are surfaced in the UI.
 - The signed prototype was installed on the connected iPhone 13. A physical-camera launch was initially blocked by the locked device; the user then chose to continue without physical-camera testing. No successful frame delivery or placement is claimed.
 - Remaining checks: physical AR frames, plane placement, gestures, camera denial/interruption, iPad, and large Dynamic Type.
+
+
+## Version 0.3 · SD/SMP learning adventure
+
+- Nine domain tests pass: existing distribution/camera checks plus catalog consistency, legacy progress migration, unique star counts, process ordering (invalid/duplicate/wrong/partial/correct), and package conservation/equality in both SD and SMP modes.
+- Simulator build succeeded with the six-mission learning path, system speech synthesis UI, optional process explanation, station-order game, sharing game, companion guide, and five-tab navigation.
+- Four simulator UI scenarios passed. The story, ordering, and sharing scenarios passed again after adding automatic feedback scrolling. Final screenshots were inspected. UI scenarios cover story paging and completion across relaunch, skipping the optional slaughter explanation before earning the ordering badge, fair package delivery, switching to SMP, studio rendering, and the optional gram calculator.
+- The signed 0.3 app was installed on the connected iPhone 13 without launching its camera. No physical-camera testing was performed. The outstanding physical AR checks from 0.2 remain open.
+- Remaining manual work: installed Indonesian speech voice and interruptions on devices, VoiceOver/large text and iPad layouts, educator and religious/animal-health content review, and supervised child usability testing.
