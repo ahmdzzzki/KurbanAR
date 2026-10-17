@@ -1,0 +1,19 @@
+name: iOS validation
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test domain logic
+        run: swift test
+      - name: Build iOS simulator app
+        run: >-
+          xcodebuild -project KurbanAR.xcodeproj -scheme KurbanAR
+          -destination 'generic/platform=iOS Simulator'
+          CODE_SIGNING_ALLOWED=NO build
