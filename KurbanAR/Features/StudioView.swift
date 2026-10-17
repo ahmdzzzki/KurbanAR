@@ -126,18 +126,18 @@ struct StudioView: View {
             .onChange(of: scenePhase) { _, phase in if phase == .background { stopAR() } }
             .onChange(of: selectedAnimal) { _, _ in observation = nil }
             .sheet(isPresented:$cameraHelp) { CameraHelpView(isSimulator: !arSupported) }
-            .confirmationDialog("Jelajah AR bersama pendamping",isPresented:$cameraPrimer,titleVisibility:.visible) {
-                Button("Mulai bersama pendamping") { requestAR() }
+            .confirmationDialog("Hadirkan hewan di ruangan",isPresented:$cameraPrimer,titleVisibility:.visible) {
+                Button("Mulai kamera") { requestAR() }
                 Button("Tetap di studio 3D",role:.cancel) { }
             } message: {
-                Text("Kamera membuat hewan 3D tampak hadir di ruanganmu. Gambar tidak direkam. Ajak pendamping dan pilih tempat lapang; tetap perhatikan sekeliling.")
+                Text("Kamera membuat hewan 3D tampak hadir di ruanganmu. Gambar tidak direkam. Pilih tempat lapang dan tetap perhatikan sekeliling.")
             }
             .alert("Izinkan akses kamera",isPresented:$showSettings) {
                 Button("Buka Pengaturan") {
                     if let url = URL(string:UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
                 }
                 Button("Nanti",role:.cancel) { }
-            } message: { Text("Di Pengaturan, aktifkan Kamera untuk KurbanAR. Gambar hanya dipakai untuk AR dan tidak direkam.") }
+            } message: { Text("Di Pengaturan, aktifkan Kamera untuk aplikasi ini. Gambar hanya dipakai untuk AR dan tidak direkam.") }
     }
     private var statusColor: Color {
         switch feedback.phase { case .failed,.interrupted: .orange; case .ready,.placed: Palette.gold; default: .white.opacity(0.5) }
@@ -206,7 +206,7 @@ struct CameraHelpView: View {
             List {
                 if isSimulator {
                     Section("Kamera AR perlu perangkat fisik") {
-                        Text("Simulator Xcode tidak menyediakan kamera AR. Jalankan KurbanAR di iPhone/iPad yang mendukung ARKit. Studio 3D tetap interaktif di sini.")
+                        Text("Simulator Xcode tidak menyediakan kamera AR. Jalankan aplikasi di iPhone/iPad yang mendukung ARKit. Studio 3D tetap interaktif di sini.")
                     }
                 }
                 Section("Mulai pengalaman AR") {
@@ -216,7 +216,7 @@ struct CameraHelpView: View {
                     Label("Geser untuk memindahkan, cubit untuk ukuran, dan putar dengan dua jari.",systemImage:"hand.draw")
                 }
                 Section("Jika kamera kosong") {
-                    Text("Tekan Mulai ulang AR. Periksa Pengaturan → KurbanAR → Kamera. Jika kamera sedang digunakan aplikasi lain, tutup aplikasi tersebut lalu coba kembali.")
+                    Text("Tekan Mulai ulang AR. Periksa Pengaturan aplikasi → Kamera. Jika kamera sedang digunakan aplikasi lain, tutup aplikasi tersebut lalu coba kembali.")
                 }
                 Section("Tentang model") {
                     Text("Sapi dan domba adalah ilustrasi 3D dengan proporsi lebih natural. Ukuran AR dapat diubah dan bukan ukuran hewan sebenarnya. Model tidak menilai umur, kesehatan, atau kelayakan kurban.")

@@ -1,25 +1,23 @@
 import SwiftUI
 
-enum AppTab: Hashable { case home, learn, studio, day, distribute }
+enum AppTab: Hashable { case home, studio, distribute }
 
 struct RootView: View {
     @State private var tab: AppTab = .home
     init() {
         #if DEBUG
-        if ProcessInfo.processInfo.arguments.contains("--reset-learning-progress") {
-            for key in ["completedLessons","learnerStage","dayActivityCompleted","sharingMissionCompleted"] { UserDefaults.standard.removeObject(forKey:key) }
+        let args = ProcessInfo.processInfo.arguments
+        if args.contains("--reset-journey") {
+            for key in ["journeyCurrentStep","purchaseRoute","deliveryRoute","journeyReviewed","selectedAnimal"] { UserDefaults.standard.removeObject(forKey:key) }
         }
-        if ProcessInfo.processInfo.arguments.contains("--camera-smoke-test") || ProcessInfo.processInfo.arguments.contains("--studio-preview") { _tab = State(initialValue: .studio) }
+        if args.contains("--camera-smoke-test") || args.contains("--studio-preview") { _tab = State(initialValue:.studio) }
         #endif
     }
     var body: some View {
-        TabView(selection: $tab) {
-            HomeView(tab: $tab).tabItem { Label("Beranda", systemImage: "house") }.tag(AppTab.home)
-            LearnView().tabItem { Label("Misi", systemImage: "star") }.tag(AppTab.learn)
-            StudioView(tab: $tab).tabItem { Label("Studio AR", systemImage: "arkit") }.tag(AppTab.studio)
-            DayExperienceView().tabItem { Label("Hari Kurban", systemImage:"sun.max") }.tag(AppTab.day)
-            DistributionView().tabItem { Label("Berbagi", systemImage: "gift") }.tag(AppTab.distribute)
-        }.tint(tab == .home ? Palette.linen : Palette.green)
-            .preferredColorScheme(tab == .home || tab == .studio ? .dark : .light)
+        TabView(selection:$tab) {
+            HomeView(tab:$tab).tabItem { Label("Alur",systemImage:"point.topleft.down.to.point.bottomright.curvepath") }.tag(AppTab.home)
+            StudioView(tab:$tab).tabItem { Label("Hewan",systemImage:"cube") }.tag(AppTab.studio)
+            DistributionView().tabItem { Label("Hitung",systemImage:"scalemass") }.tag(AppTab.distribute)
+        }.tint(Palette.green).preferredColorScheme(tab == .studio ? .dark : .light)
     }
 }

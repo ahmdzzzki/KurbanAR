@@ -16,24 +16,6 @@ import Testing
     #expect(throws: DistributionPlan.ValidationError.self) { try DistributionPlan(totalGrams: 100, packageCount: 0) }
     #expect(throws: DistributionPlan.ValidationError.self) { try DistributionPlan(totalGrams: 100, packageCount: 101) }
 }
-@Test func onlyCorrectAnswersPersist() {
-    let lesson = Lesson.all[0]
-    var progress = LearningProgress(saved: "unknown,care,care")
-    #expect(progress.completed == ["care"])
-    progress = LearningProgress()
-    let invalid = progress.submit(lesson: lesson, answer: -1)
-    let wrong = progress.submit(lesson: lesson, answer: 0)
-    #expect(!invalid)
-    #expect(!wrong)
-    #expect(progress.completed.isEmpty)
-    let right = progress.submit(lesson: lesson, answer: lesson.correctAnswer)
-    let repeated = progress.submit(lesson: lesson, answer: lesson.correctAnswer)
-    #expect(right)
-    #expect(repeated)
-    #expect(progress.completed.count == 1)
-    #expect(LearningProgress(saved: progress.saved) == progress)
-}
-
 @Test func animalCatalogIsComplete() {
     #expect(AnimalSpecies.allCases.count == 2)
     #expect(AnimalSpecies(rawValue: "sapi") == .cattle)
@@ -50,65 +32,34 @@ import Testing
     #expect(!CameraActivationPolicy.shouldActivate(granted: true, supported: false, isBackground: false))
 }
 
-@Test func legacyProgressAndStarsRemainUnique() {
-    var progress = LearningProgress(saved:"care,prepare,share,invalid,care")
-    #expect(progress.completed.count == 3)
-    #expect(progress.fraction == 0.5)
-    for lesson in Lesson.all {
-        let correct = progress.submit(lesson:lesson,answer:lesson.correctAnswer)
-        #expect(correct)
+
+@Test func journeyCoversProcurementThroughDistribution() {
+    let ids = JourneyStep.all.map(\.id)
+    #expect(ids.count == 10 && Set(ids).count == 10)
+    #expect(ids.first == "plan" && ids.last == "distribute")
+    #expect(JourneyStep.index(for:"buy") < JourneyStep.index(for:"receive"))
+    #expect(JourneyStep.index(for:"care") < JourneyStep.index(for:"slaughter"))
+    #expect(JourneyStep.index(for:"slaughter") < JourneyStep.index(for:"inspect"))
+    #expect(JourneyStep.index(for:"inspect") < JourneyStep.index(for:"pack"))
+    #expect(JourneyStep.index(for:"unknown") == 0)
+    for step in JourneyStep.all {
+        #expect(step.caption.count <= 100)
+        #expect(!step.actor.isEmpty && step.source.scheme == "https")
     }
-    #expect(progress.completed.count == 6)
-    #expect(progress.fraction == 1)
-    #expect(progress.badge == "Sahabat Kurban")
-    #expect(LearningProgress(saved:progress.saved) == progress)
 }
-@Test func lessonAndStationCatalogsAreConsistent() {
-    #expect(Set(Lesson.all.map(\.id)).count == Lesson.all.count)
-    for lesson in Lesson.all { #expect(lesson.answers.indices.contains(lesson.correctAnswer)) }
-    #expect(Set(ProcessStation.all.map(\.id)) == Set(ProcessStation.puzzleOrder))
-    #expect(ProcessStation.all.filter { $0.optionalExplanation != nil }.map(\.id) == ["slaughter"])
+@Test func journeyProgressRejectsUnknownAndDuplicateSteps() {
+    var progress = JourneyProgress(saved:"unknown,buy,buy")
+    #expect(progress.reviewed == ["buy"])
+    let duplicate = progress.review("buy")
+    let unknown = progress.review("unknown")
+    #expect(!duplicate && !unknown)
+    #expect(!progress.isComplete)
+    for step in JourneyStep.all { _ = progress.review(step.id) }
+    #expect(progress.isComplete)
+    #expect(JourneyProgress(saved:progress.saved) == progress)
 }
-@Test func processOrderRejectsInvalidAndDuplicateSteps() {
-    var game = ProcessOrderingGame()
-    let unknown = game.choose("unknown")
-    #expect(!unknown)
-    #expect(!game.isCorrect)
-    _ = game.choose("deliver")
-    let duplicate = game.choose("deliver")
-    #expect(!duplicate)
-    for step in ProcessStation.all where step.id != "deliver" { _ = game.choose(step.id) }
-    #expect(game.isFilled)
-    #expect(!game.isCorrect)
-    game.reset()
-    for step in ProcessStation.all { _ = game.choose(step.id) }
-    #expect(game.isCorrect)
-    game.undo()
-    #expect(!game.isFilled && !game.isCorrect)
-}
-@Test func sharingConservesPackagesAndRequiresEquality() {
-    for stage in LearnerStage.allCases {
-        var game = SharingGame(stage:stage)
-        let initial = game
-        let invalid = game.deliver(to:-1)
-        let empty = game.takeBack(from:0)
-        #expect(!invalid && !empty)
-        #expect(game == initial)
-        for _ in 0..<game.total { _ = game.deliver(to:0) }
-        #expect(!game.isComplete)
-        let extra = game.deliver(to:0)
-        #expect(!extra)
-        game.reset()
-        for _ in 0..<(game.total/game.received.count) {
-            for index in game.received.indices {
-                _ = game.deliver(to:index)
-                #expect(game.remaining + game.received.reduce(0,+) == game.total)
-            }
-        }
-        #expect(game.isComplete)
-        _ = game.takeBack(from:0)
-        #expect(!game.isComplete && game.remaining == 1)
-        _ = game.deliver(to:0)
-        #expect(game.isComplete)
-    }
+@Test func buyerChangesWithPurchaseRoute() {
+    #expect(PurchaseRoute.direct.buyer == "Pengurban")
+    #expect(PurchaseRoute.delegated.buyer == "Panitia / lembaga")
+    #expect(PurchaseRoute.direct.explanation != PurchaseRoute.delegated.explanation)
 }
