@@ -3,6 +3,7 @@ import SwiftUI
 struct HomeView: View {
     @Binding var tab: AppTab
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @AppStorage("journeyCurrentStep") private var currentID = JourneyStep.all[0].id
     @AppStorage("purchaseRoute") private var purchaseRaw = PurchaseRoute.direct.rawValue
     @AppStorage("deliveryRoute") private var deliveryRaw = DeliveryRoute.deliver.rawValue
@@ -21,17 +22,17 @@ struct HomeView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment:.leading,spacing:18) {
-                    HStack {
+                    GlassControls { HStack(spacing:12) {
                         Text(AppBrand.name).font(.system(.title2,design:.serif).weight(.semibold))
                         Spacer()
-                        Button { about = true } label: { Image(systemName:"info.circle").font(.title3).frame(width:44,height:44) }.accessibilityLabel("Tentang aplikasi")
-                    }
-                    HStack {
-                        Text("DARI NIAT KE MANFAAT").font(.system(size:10,weight:.medium,design:.monospaced)).tracking(1.8)
-                        Spacer()
-                        Button { map = true } label: { Label("Lihat alur",systemImage:"square.grid.2x2") }.font(.caption.weight(.medium))
-                            .accessibilityIdentifier("journey.map")
-                    }.foregroundStyle(Palette.green)
+                        Button { map = true } label: {
+                            Image(systemName:"square.grid.2x2").frame(width:28,height:28)
+                        }.liquidButton().accessibilityLabel("Lihat alur").accessibilityIdentifier("journey.map")
+                        Button { about = true } label: {
+                            Image(systemName:"info").font(.subheadline.weight(.medium)).frame(width:28,height:28)
+                        }.liquidButton().accessibilityLabel("Tentang aplikasi")
+                    } }
+                    Text("DARI NIAT KE MANFAAT").font(.system(size:10,weight:.medium,design:.monospaced)).tracking(1.8).foregroundStyle(Palette.green)
                     ProgressView(value:Double(index+1),total:Double(JourneyStep.all.count)).tint(Palette.green)
                     HStack {
                         Text(String(format:"%02d",index+1)).font(.system(.largeTitle,design:.rounded).weight(.light))
@@ -43,25 +44,32 @@ struct HomeView: View {
                         .frame(height:230).frame(maxWidth:.infinity)
                         .background(step.id == "choose" ? Palette.midnight : Palette.mist,in:RoundedRectangle(cornerRadius:28))
                         .clipShape(RoundedRectangle(cornerRadius:28))
+                        .accessibilityElement(children:.contain)
                         .accessibilityLabel("Ilustrasi tahap: \(step.title)")
+                        .accessibilityIdentifier("journey.visual")
+                        .simultaneousGesture(DragGesture(minimumDistance:40).onEnded { value in
+                            guard step.id != "choose", abs(value.translation.width) > abs(value.translation.height)*1.5 else { return }
+                            if value.translation.width < -60 && index < JourneyStep.all.count-1 { advance() }
+                            else if value.translation.width > 60 && index > 0 { move(to:index-1) }
+                        })
                     VStack(alignment:.leading,spacing:10) {
                         Text(step.title).font(.system(size:30,weight:.medium,design:.serif)).accessibilityIdentifier("journey.title")
                         Text(contextCaption).font(.subheadline).foregroundStyle(.secondary).lineSpacing(3).accessibilityIdentifier("journey.caption")
                     }
                     controls
                     HStack(spacing:16) {
-                        Button { detail = true } label: { Label("Lihat detail",systemImage:"plus.circle") }
-                            .accessibilityIdentifier("journey.detail")
+                        Button { detail = true } label: { Label("Lihat detail",systemImage:"plus.circle").padding(.horizontal,4).frame(minHeight:28) }
+                            .liquidButton().accessibilityIdentifier("journey.detail")
                         Spacer()
                         Button {
                             if speaker.speaking { speaker.stop() } else { speaker.read(step.title+". "+contextCaption) }
-                        } label: { Image(systemName:speaker.speaking ? "stop.circle" : "speaker.wave.2") }
-                            .accessibilityLabel(speaker.speaking ? "Hentikan narasi" : "Dengarkan tahap ini")
+                        } label: { Image(systemName:speaker.speaking ? "stop.fill" : "speaker.wave.2").frame(width:28,height:28) }
+                            .liquidButton().accessibilityLabel(speaker.speaking ? "Hentikan narasi" : "Dengarkan tahap ini")
                     }.font(.subheadline).padding(.vertical,3)
 
-                }.padding(.horizontal,24).padding(.top,8).frame(maxWidth:700).frame(maxWidth:.infinity)
+                }.padding(.horizontal,24).padding(.top,8).padding(.bottom,20).frame(maxWidth:700).frame(maxWidth:.infinity)
             }.background(Palette.cream).foregroundStyle(Palette.ink).toolbar(.hidden,for:.navigationBar)
-                .safeAreaInset(edge:.bottom) { navigationButtons.padding(.horizontal,24).padding(.top,8).background(Palette.cream) }
+                .safeAreaInset(edge:.bottom) { navigationButtons.padding(.horizontal,24).padding(.top,8).background { LinearGradient(colors:[Palette.cream.opacity(0),Palette.cream,Palette.cream],startPoint:.top,endPoint:.bottom).ignoresSafeArea(edges:.bottom).allowsHitTesting(false) } }
                 .onDisappear { speaker.stop() }
                 .onChange(of:currentID) { _,_ in speaker.stop() }
                 .onChange(of:scenePhase) { _,phase in if phase != .active { speaker.stop() } }
@@ -72,17 +80,15 @@ struct HomeView: View {
         }
     }
     private var navigationButtons: some View {
-        HStack(spacing:12) {
+        GlassControls { HStack(spacing:12) {
             if index > 0 {
-                Button { move(to:index-1) } label: { Image(systemName:"arrow.left").frame(width:50,height:55).background(.white,in:RoundedRectangle(cornerRadius:18)) }
-                    .accessibilityLabel("Tahap sebelumnya")
+                Button { move(to:index-1) } label: { Image(systemName:"arrow.left").frame(width:32,height:44) }
+                    .liquidButton().accessibilityLabel("Tahap sebelumnya")
             }
             PrimaryButton(title:index == JourneyStep.all.count-1 ? "Lihat perjalanan lengkap" : "Lanjut",symbol:"arrow.right") {
-                var progress = JourneyProgress(saved:saved)
-                _ = progress.review(step.id);saved = progress.saved
-                if index < JourneyStep.all.count-1 { move(to:index+1) } else { summary = true }
+                advance()
             }.accessibilityIdentifier("journey.next")
-        }.padding(.bottom,15)
+        } }.padding(.bottom,10)
     }
     private var contextCaption: String {
         switch step.id {
@@ -97,11 +103,11 @@ struct HomeView: View {
         if step.id == "choose" {
             HStack(spacing:10) {
                 ForEach(AnimalSpecies.allCases) { animal in
-                    Button { selectedAnimal = animal.rawValue } label: {
+                    Button { selectedAnimal = animal.rawValue;UISelectionFeedbackGenerator().selectionChanged() } label: {
                         HStack { Text(animal.title);Spacer();Image(systemName:selectedAnimal == animal.rawValue ? "checkmark.circle.fill" : "circle") }
-                            .font(.subheadline.weight(.semibold)).padding(17)
-                            .background(selectedAnimal == animal.rawValue ? Palette.sage : .white,in:RoundedRectangle(cornerRadius:17))
-                    }.buttonStyle(.plain).accessibilityIdentifier("journey.animal.\(animal.rawValue)")
+                            .font(.subheadline.weight(.semibold)).padding(.vertical,9).padding(.horizontal,5)
+                            .foregroundStyle(selectedAnimal == animal.rawValue ? .white : Palette.ink)
+                    }.liquidButton(prominent:selectedAnimal == animal.rawValue).accessibilityIdentifier("journey.animal.\(animal.rawValue)")
                 }
             }
         }
@@ -114,8 +120,17 @@ struct HomeView: View {
             }.pickerStyle(.segmented).accessibilityIdentifier("journey.delivery")
         }
     }
+    private func advance() {
+        var progress = JourneyProgress(saved:saved)
+        _ = progress.review(step.id);saved = progress.saved
+        if index < JourneyStep.all.count-1 { move(to:index+1) } else { summary = true }
+    }
     private func move(to next: Int) {
-        speaker.stop();currentID = JourneyStep.all[min(max(next,0),JourneyStep.all.count-1)].id
+        speaker.stop()
+        withAnimation(reduceMotion ? nil : .easeInOut(duration:0.22)) {
+            currentID = JourneyStep.all[min(max(next,0),JourneyStep.all.count-1)].id
+        }
+        UISelectionFeedbackGenerator().selectionChanged()
     }
 }
 
@@ -140,12 +155,7 @@ struct JourneyVisual: View {
                 Text("Ilustrasi simbolis").font(.caption).foregroundStyle(.secondary)
             }
         case "inspect": RoleFlow(roles:[("person.badge.shield.checkmark","Pemeriksa"),("checkmark.shield","Kelayakan")])
-        case "pack":
-            VStack(spacing:25) {
-                Image(systemName:"scalemass").font(.system(size:56,weight:.ultraLight)).foregroundStyle(Palette.green)
-                HStack(spacing:23) { ForEach(0..<4,id:\.self) { _ in Image(systemName:"shippingbox").font(.system(size:32,weight:.light)) } }
-                Text("Potong → timbang → kemas").font(.caption.weight(.medium))
-            }
+        case "pack": PackingIllustration()
         default:
             RoleFlow(roles:delivery == .deliver ? [("shippingbox","Paket"),("truck.box","Diantar"),("house","Penerima")] : [("shippingbox","Paket"),("person.2","Diambil"),("checkmark.circle","Dicatat")])
         }

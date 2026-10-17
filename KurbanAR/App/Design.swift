@@ -25,14 +25,43 @@ struct PrimaryButton: View {
     var body: some View {
         Button(action: action) {
             HStack { Text(title); Spacer(); Image(systemName: symbol) }
-                .font(.headline).padding(19).foregroundStyle(.white)
-                .background(Palette.green, in: RoundedRectangle(cornerRadius: 20))
-        }.buttonStyle(.plain)
+                .font(.headline).padding(.horizontal,12).frame(minHeight:44).foregroundStyle(.white)
+        }.liquidButton(prominent:true)
     }
 }
 
 extension View {
     func paperCard() -> some View {
         self.padding(20).background(.white.opacity(0.82), in: RoundedRectangle(cornerRadius: 24))
+    }
+}
+
+// Native styles own interaction and hit testing, including accessibility settings.
+struct GlassControls<Content: View>: View {
+    @ViewBuilder let content: () -> Content
+    var body: some View {
+        if #available(iOS 26.0, *) { GlassEffectContainer(spacing:12) { content() } }
+        else { content() }
+    }
+}
+
+struct MaterialControlStyle: ButtonStyle {
+    var prominent: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.padding(12)
+            .background(prominent ? AnyShapeStyle(Palette.green) : reduceTransparency ? AnyShapeStyle(Color(uiColor:.secondarySystemBackground)) : AnyShapeStyle(.regularMaterial),in:Capsule())
+            .opacity(configuration.isPressed ? 0.75 : 1)
+            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.98 : 1)
+    }
+}
+
+extension View {
+    @ViewBuilder func liquidButton(prominent: Bool = false) -> some View {
+        if #available(iOS 26.0, *) {
+            if prominent { self.buttonStyle(.glassProminent).buttonBorderShape(.capsule).tint(Palette.green) }
+            else { self.buttonStyle(.glass).buttonBorderShape(.capsule) }
+        } else { self.buttonStyle(MaterialControlStyle(prominent:prominent)) }
     }
 }

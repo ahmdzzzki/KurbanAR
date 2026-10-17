@@ -1,6 +1,10 @@
 # Release preparation
 
-Kurbanin 0.4 is a general-audience portfolio prototype. Publishing its source does not submit an App Store app.
+Kurbanin 0.5 is a general-audience portfolio prototype. Publishing its source does not submit an App Store app.
+
+## Owner review gate
+
+The owner requested one more hands-on test of 0.5 before any App Store upload. Install the signed build locally, provide the preview and test scope, then wait for explicit confirmation. No App Store Connect upload, submission, or release is authorized yet.
 
 Before TestFlight:
 

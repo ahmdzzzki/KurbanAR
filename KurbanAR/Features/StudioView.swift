@@ -82,9 +82,8 @@ struct StudioView: View {
                                 HStack(spacing: 6) {
                                     Image(systemName: "plus.circle").font(.caption)
                                     Text(point.title).font(.caption.weight(.medium))
-                                }.padding(.vertical,10).frame(maxWidth:.infinity)
-                                    .background(observation == point ? Palette.gold.opacity(0.35) : .white.opacity(0.08),in:Capsule())
-                            }.buttonStyle(.plain).accessibilityIdentifier("observation.\(point.rawValue)")
+                                }.padding(.vertical,6).frame(maxWidth:.infinity)
+                            }.liquidButton(prominent:observation == point).accessibilityIdentifier("observation.\(point.rawValue)")
                         }
                     }
                     HStack(alignment: .top, spacing: 10) {
@@ -100,10 +99,9 @@ struct StudioView: View {
                             Text(requestingCamera ? "Meminta akses kamera…" : (activeAR ? "Kembali ke studio 3D" : "Hadirkan di duniamu"))
                             Spacer()
                             Image(systemName: "arrow.up.right")
-                        }.font(.subheadline.weight(.semibold)).padding(19)
-                            .foregroundStyle(Palette.midnight)
-                            .background(Palette.linen,in:RoundedRectangle(cornerRadius:20))
-                    }.buttonStyle(.plain).disabled(requestingCamera).accessibilityIdentifier("studio.camera")
+                        }.font(.subheadline.weight(.semibold)).padding(.vertical,10).padding(.horizontal,6)
+                            .foregroundStyle(.white)
+                    }.liquidButton().disabled(requestingCamera).accessibilityIdentifier("studio.camera")
                     if activeAR && (feedback.phase == .failed || feedback.phase == .interrupted) {
                         Button("Mulai ulang AR",systemImage:"arrow.clockwise") { resetToken += 1 }.font(.caption.weight(.semibold))
                     }
@@ -143,8 +141,8 @@ struct StudioView: View {
         switch feedback.phase { case .failed,.interrupted: .orange; case .ready,.placed: Palette.gold; default: .white.opacity(0.5) }
     }
     private func circleButton(_ title: String,symbol: String,action:@escaping () -> Void) -> some View {
-        Button(action:action) { Image(systemName:symbol).font(.system(size:15,weight:.semibold)).frame(width:44,height:44).background(.white.opacity(0.10),in:Circle()) }
-            .buttonStyle(.plain).accessibilityLabel(title)
+        Button(action:action) { Image(systemName:symbol).font(.system(size:15,weight:.semibold)).frame(width:28,height:28) }
+            .liquidButton().accessibilityLabel(title)
     }
     private func stopAR() {
         activeAR = false
@@ -189,9 +187,8 @@ struct AnimalPicker: View {
                         Spacer()
                         Image(systemName:selected ? "checkmark.circle.fill" : "circle").font(.subheadline)
                             .foregroundStyle(selected ? Palette.gold : .white.opacity(0.25))
-                    }.padding(16).background(selected ? .white.opacity(0.13) : .white.opacity(0.04),in:RoundedRectangle(cornerRadius:18))
-                        .overlay(RoundedRectangle(cornerRadius:18).stroke(selected ? Palette.gold.opacity(0.6) : .white.opacity(0.1),lineWidth:1))
-                }.buttonStyle(.plain).accessibilityIdentifier("animal.\(species.rawValue)")
+                    }.padding(.vertical,9).padding(.horizontal,5)
+                }.liquidButton(prominent:selected).accessibilityIdentifier("animal.\(species.rawValue)")
                     .accessibilityAddTraits(selected ? .isSelected : [])
             }
         }.foregroundStyle(.white)

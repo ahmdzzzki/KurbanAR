@@ -74,7 +74,38 @@ final class KurbanARUITests: XCTestCase {
         XCTAssertEqual(app.staticTexts["studio.animalName"].label,"Sapi")
         app.buttons["animal.domba"].tap()
         XCTAssertEqual(app.staticTexts["studio.animalName"].label,"Domba")
+        save("Studio Liquid Glass",app)
         app.buttons["Kembali ke beranda"].tap()
         XCTAssertTrue(app.staticTexts["journey.title"].exists)
     }
+    @MainActor func testSwipeRolesPackingAndLiveCalculator() {
+        let app = openFresh()
+        app.buttons["role.Pengurban"].tap()
+        XCTAssertTrue(app.staticTexts["Orang yang berkurban. Bisa membeli sendiri atau memberi mandat kepada panitia."].waitForExistence(timeout:5))
+        save("Peran tanpa menambah isi layar",app)
+        app.buttons["Tutup"].tap()
+        let illustration = app.otherElements["journey.visual"]
+        illustration.swipeLeft()
+        XCTAssertEqual(app.staticTexts["journey.title"].label,"Pilih hewannya")
+        // The same gesture rotates the animal instead of accidentally changing stages.
+        illustration.swipeLeft()
+        XCTAssertEqual(app.staticTexts["journey.title"].label,"Pilih hewannya")
+        app.buttons["journey.next"].tap()
+        illustration.swipeRight()
+        XCTAssertEqual(app.staticTexts["journey.title"].label,"Pilih hewannya")
+        app.buttons["journey.map"].tap()
+        tapReachable(app.buttons["jump.pack"],in:app)
+        for i in 0..<4 { app.buttons["packing.\(i)"].tap() }
+        XCTAssertEqual(app.staticTexts["packing.status"].label,"Ilustrasi: 4 dari 4 paket siap")
+        XCTAssertEqual(app.buttons["packing.0"].value as? String,"Siap")
+        app.buttons["packing.0"].tap()
+        XCTAssertEqual(app.staticTexts["packing.status"].label,"Ilustrasi: 3 dari 4 paket siap")
+        save("Interaksi paket",app)
+        app.tabBars.buttons["Hitung"].tap()
+        let packages = app.steppers["calculator.packages"]
+        packages.buttons.element(boundBy:1).tap()
+        XCTAssertEqual(app.staticTexts["distribution.gramsPerPackage"].label.filter(\.isNumber),"1190")
+        save("Hitung paket langsung",app)
+    }
+
 }

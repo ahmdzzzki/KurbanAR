@@ -80,7 +80,7 @@ struct AboutJourneyView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section(AppBrand.name+" · 0.4") {
+                Section(AppBrand.name+" · 0.5") {
                     Text("Perjalanan visual kurban untuk siapa pun, dari pengadaan hewan sampai penyaluran daging.")
                     Text("Gambaran umum, bukan panduan teknik penyembelihan. Materi masih perlu ditinjau ahli sebelum rilis.")
                 }

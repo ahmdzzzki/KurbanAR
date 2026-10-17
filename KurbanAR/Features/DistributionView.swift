@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DistributionView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var kilograms = 25
     @State private var packages = 20
     private var plan: DistributionPlan? { try? DistributionPlan(totalGrams:kilograms*1000,packageCount:packages) }
@@ -21,7 +22,8 @@ struct DistributionView: View {
                     }.paperCard()
                     if let plan {
                         VStack(alignment:.leading,spacing:12) {
-                            Text("\(plan.gramsPerPackage)").font(.system(size:58,weight:.light,design:.rounded)).accessibilityIdentifier("distribution.gramsPerPackage")
+                            Text("\(plan.gramsPerPackage)").font(.system(size:58,weight:.light,design:.rounded)).accessibilityIdentifier("distribution.gramsPerPackage").contentTransition(.numericText())
+                                .animation(reduceMotion ? nil : .smooth(duration:0.25),value:plan.gramsPerPackage)
                             Text("gram per paket").font(.subheadline)
                             Divider()
                             Text("Sisa \(plan.remainingGrams) g").font(.caption)
@@ -32,7 +34,7 @@ struct DistributionView: View {
                         }.font(.subheadline)
                     }
                 }.padding(24).frame(maxWidth:700).frame(maxWidth:.infinity)
-            }.background(Palette.cream).foregroundStyle(Palette.ink).navigationTitle("Hitung paket").navigationBarTitleDisplayMode(.inline)
+            }.sensoryFeedback(.selection,trigger:kilograms).sensoryFeedback(.selection,trigger:packages).background(Palette.cream).foregroundStyle(Palette.ink).navigationTitle("Hitung paket").navigationBarTitleDisplayMode(.inline)
         }
     }
 }

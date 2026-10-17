@@ -1,4 +1,16 @@
-# Verification · Kurbanin 0.4 · 17 October 2026
+# Verification · Kurbanin 0.5 · 17 October 2026
+
+## Liquid Glass and interaction checks
+
+- Four XCUITest scenarios pass on the iPhone 17 Pro / iOS 26.5 simulator: purchase and animal persistence; the complete ten-stage journey; map, detail, calculator and studio; and role sheets, forward/back swipes, 3D gesture isolation, reversible package interaction, and recalculation after changing package count.
+- The final compact-header layout is additionally checked on a 6.1-inch iPhone 17e simulator, corresponding to the user's phone screen width.
+- Native iOS 26 glass / glassProminent button styles handle control interaction. iOS 18–25 use a material style with an opaque Reduce Transparency alternative. Custom animations respect Reduce Motion.
+- Illustrations expose their child role/package controls to accessibility instead of combining them into a single label.
+- Signed Release build 0.5.0 (5) succeeds and is installed locally on the connected iPhone 13. No camera session was launched.
+- Store metadata is a local draft. No App Store Connect upload or submission was performed. The owner must test 0.5 and explicitly confirm before that step.
+- Physical camera frames, iPad, device VoiceOver and large Dynamic Type, and expert content review remain open.
+
+## Previous verification · 0.4
 
 ## Automated checks
 

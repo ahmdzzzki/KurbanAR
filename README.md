@@ -4,9 +4,19 @@
 
 A visual Indonesian introduction to the full kurban journey, for a general audience. One stage per screen, a short caption, and optional details with sources. Native SwiftUI, RealityKit, and ARKit; iOS 18+.
 
-<img src="docs/screenshots/alur-v4.png" alt="Choose who handles animal procurement" width="280"> <img src="docs/screenshots/distribusi-v4.png" alt="Meat packages reach recipients" width="280">
+<img src="docs/screenshots/alur-v5.png" alt="Choose who handles animal procurement" width="280"> <img src="docs/screenshots/paket-v5.png" alt="Lightweight interactive package illustration" width="280">
 
-## Version 0.4
+## Version 0.5 · Liquid Glass and quiet interactions
+
+- Native iOS 26+ glass button styles for navigation, choices, audio, and studio controls; material fallback on iOS 18–25. The teaching content stays on solid surfaces.
+- Swipe horizontally across a journey illustration to move between stages. On animal selection, swipes keep controlling the 3D animal; the next button remains available everywhere.
+- Tap a role to open one short explanation in a dismissible sheet.
+- Tap the four illustrative packages to toggle readiness. This is optional and never blocks progress or determines actual distribution quantities.
+- Selection haptics and a smoothly changing calculator result. Reduced Motion is respected for custom animations; system glass follows accessibility settings, with an opaque fallback for Reduce Transparency on older systems.
+
+The new build is prepared for the owner's physical-device review. **Do not upload or submit to App Store Connect until the owner tests this version and explicitly confirms it is suitable.** Store metadata is drafted in `docs/app-store/METADATA-id.md`.
+
+## Journey
 
 Ten stages: intention and planning → animal selection → purchase → handover → care and health checks → preparation → slaughter → meat inspection → cutting, weighing and packaging → distribution.
 
@@ -21,7 +31,7 @@ The former SD/SMP modes, missions, stars, and sharing game have been replaced by
 
 ## Run
 
-Open `KurbanAR.xcodeproj`, select the **KurbanAR** scheme, and run on an iPhone/iPad simulator. Internal project and bundle names are retained so existing installations and signing continue to work; the app's display name is **Kurbanin**.
+Build with Xcode 26 or newer (Liquid Glass SDK); the deployment target remains iOS 18. Open `KurbanAR.xcodeproj`, select the **KurbanAR** scheme, and run on an iPhone/iPad simulator. Internal project and bundle names are retained so existing installations and signing continue to work; the app's display name is **Kurbanin**.
 
 Camera AR requires a compatible physical device, a signing team, and camera permission. The simulator supports the 3D studio. On a device, detect a horizontal surface, tap to place an animal, pinch to resize, and rotate with two fingers.
 
