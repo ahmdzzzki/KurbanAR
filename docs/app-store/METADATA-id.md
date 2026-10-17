@@ -1,6 +1,6 @@
 # Draf App Store · Bahasa Indonesia
 
-Status: draf lokal, belum diunggah. Menunggu uji versi 0.5 dan konfirmasi pemilik sebelum proses App Store Connect.
+Status: metadata bahasa Indonesia sudah disimpan di App Store Connect. Versi 0.5.0 (5) diajukan pada 18 Oktober 2026 dan berstatus Waiting for Review. Harga gratis; rilis otomatis setelah disetujui Apple.
 
 Nama: Kurbanin
 
@@ -27,11 +27,12 @@ Kurbanin menyajikan gambaran umum. Pengaturan kegiatan dapat berbeda antarpenyel
 
 Kata kunci draf: kurban,iduladha,edukasi,hewan,sapi,domba,berbagi,belajar,3d
 
-Informasi yang masih harus diselesaikan sebelum pengiriman:
+Catatan rilis:
 
-- URL dukungan dan kebijakan privasi yang dapat diakses publik.
-- Status akun Developer, akses App Store Connect, serta sertifikat distribusi.
+- Dukungan: https://github.com/ahmdzzzki/KurbanAR/issues
+- Privasi: https://github.com/ahmdzzzki/KurbanAR/blob/main/docs/PRIVACY.md
+- Archive, ekspor signing distribusi, upload, dan pemrosesan build berhasil.
 - Tinjauan materi keagamaan/kesehatan hewan dan uji kamera fisik.
-- Jawaban kategori, rating usia, dan App Privacy berdasarkan build final.
+- Kategori Education; rating umum 9+ dengan variasi regional; Data Not Collected sudah dipublikasikan.
 
 Tidak ada klaim peninjauan ahli, ketersediaan nama, atau persetujuan Apple pada draf ini.

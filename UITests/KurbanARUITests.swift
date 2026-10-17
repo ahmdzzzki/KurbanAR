@@ -43,6 +43,7 @@ final class KurbanARUITests: XCTestCase {
     }
     @MainActor func testEndToEndJourneyAndDeliveryChoice() {
         let app = openFresh()
+        save("00 — Alur kurban",app)
         let titles = ["Mulai dari pengurban","Pilih hewannya","Siapa yang membeli?","Hewan diserahterimakan","Dirawat dan diperiksa","Pelaksanaan disiapkan","Penyembelihan","Daging diperiksa","Ditimbang dan dikemas","Sampai ke penerima"]
         for (index,title) in titles.enumerated() {
             XCTAssertEqual(app.staticTexts["journey.title"].label,title)

@@ -2,6 +2,8 @@
 
 **Dari niat ke manfaat.**
 
+App Store submission: **0.5.0 (5), Waiting for Review**, 18 October 2026. The app is free, targets iPhone and iPad, and is configured for automatic release after Apple approval. It is not live on the store yet.
+
 A visual Indonesian introduction to the full kurban journey, for a general audience. One stage per screen, a short caption, and optional details with sources. Native SwiftUI, RealityKit, and ARKit; iOS 18+.
 
 <img src="docs/screenshots/alur-v5.png" alt="Choose who handles animal procurement" width="280"> <img src="docs/screenshots/paket-v5.png" alt="Lightweight interactive package illustration" width="280">
@@ -14,7 +16,7 @@ A visual Indonesian introduction to the full kurban journey, for a general audie
 - Tap the four illustrative packages to toggle readiness. This is optional and never blocks progress or determines actual distribution quantities.
 - Selection haptics and a smoothly changing calculator result. Reduced Motion is respected for custom animations; system glass follows accessibility settings, with an opaque fallback for Reduce Transparency on older systems.
 
-The new build is prepared for the owner's physical-device review. **Do not upload or submit to App Store Connect until the owner tests this version and explicitly confirms it is suitable.** Store metadata is drafted in `docs/app-store/METADATA-id.md`.
+The owner approved upload, privacy publication, App Review submission, and automatic release after approval. The build and listing have been submitted. See `docs/app-store/SUBMISSION.md` for the verified status.
 
 ## Journey
 

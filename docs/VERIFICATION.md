@@ -7,7 +7,7 @@
 - Native iOS 26 glass / glassProminent button styles handle control interaction. iOS 18–25 use a material style with an opaque Reduce Transparency alternative. Custom animations respect Reduce Motion.
 - Illustrations expose their child role/package controls to accessibility instead of combining them into a single label.
 - Signed Release build 0.5.0 (5) succeeds and is installed locally on the connected iPhone 13. No camera session was launched.
-- Store metadata is a local draft. No App Store Connect upload or submission was performed. The owner must test 0.5 and explicitly confirm before that step.
+- On 18 October 2026, after explicit owner authorization, version 0.5.0 (5) was uploaded and submitted to Apple. Verified state: Waiting for Review. See `docs/app-store/SUBMISSION.md`.
 - Physical camera frames, iPad, device VoiceOver and large Dynamic Type, and expert content review remain open.
 
 ## Previous verification · 0.4

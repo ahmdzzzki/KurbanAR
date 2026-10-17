@@ -2,11 +2,15 @@
 
 Kurbanin 0.5 is a general-audience portfolio prototype. Publishing its source does not submit an App Store app.
 
-## Owner review gate
+## Submission status · 18 October 2026
 
-The owner requested one more hands-on test of 0.5 before any App Store upload. Install the signed build locally, provide the preview and test scope, then wait for explicit confirmation. No App Store Connect upload, submission, or release is authorized yet.
+The owner explicitly authorized App Store upload, publication of the Data Not Collected privacy response, submission for App Review, and automatic release after approval.
 
-Before TestFlight:
+Version **0.5.0 (5)** was uploaded and processed, attached to the listing, and submitted. App Store Connect shows **Waiting for Review**. This does not mean Apple has approved or publicly released the app. The configured price is free. Distribution targets iPhone and iPad; untested compatibility distribution on Apple silicon Macs and Vision Pro is disabled.
+
+The earlier owner-review hold has been satisfied and superseded. See [submission record](app-store/SUBMISSION.md).
+
+Remaining product checks:
 
 - Confirm the product name and availability; Kurbanin is the current chosen direction, not a trademark or store-name clearance.
 - Have religious and animal-health reviewers validate procurement, delegation, care, processing, and distribution content.
